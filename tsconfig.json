@@ -1,21 +1,19 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "moduleResolution": "bundler",
-    "outDir": "./dist",
-    "strict": true,
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@routes/*": ["src/routes/*"],
-      "@controllers/*": ["src/controllers/*"],
-      "@services/*": ["src/services/*"]
-    }
+    "target": "es2015",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "moduleDetection": "legacy",
+    "outDir": "./dist"
+    // "strict": true,
+    // "verbatimModuleSyntax": true,
+    // "isolatedModules": true,
+    // "noUncheckedSideEffectImports": true,
+    // "skipLibCheck": true,
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@/*": ["src/*"]
+    // }
   },
   "exclude": ["node_modules"],
   "include": ["src/**/*"]

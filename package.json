@@ -6,9 +6,10 @@
   "author": "",
   "type": "module",
   "scripts": {
-    "dev": "nodemon --watch src src/index.ts",
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js"
+    "dev": "nodemon --watch src dist/index.js",
+    "dev-ts": "ts-node src/index.ts",
+    "build": "tsc --build --force tsconfig.json",
+    "start": "node --experimental-modules dist/index.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -26,9 +27,6 @@
     "typescript": "^5.9.3"
   },
   "_moduleAliases": {
-    "@": "./dist",
-    "@routes": "./dist/routes",
-    "@controllers": "./dist/controllers",
-    "@services": "./dist/services"
+    "@": "./dist"
   }
 }

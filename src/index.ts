@@ -1,7 +1,13 @@
-import fastify from "fastify";
-import "module-alias/register.js";
+// import "module-alias/register.js";
 
+import fastify from "fastify";
+import authRoutes from "./routes/authRoutes.js";
+
+// test server health
 const server = fastify({ logger: true });
+
+// register routes
+server.register(authRoutes);
 
 server.get("/", async (request, reply) => {
   reply.send("pong!\n");
