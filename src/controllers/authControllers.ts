@@ -1,4 +1,5 @@
 import type { RouteHandler } from "fastify";
+import type { JwtPayload } from "jsonwebtoken";
 import * as authService from "../services/authService.js";
 
 interface IBody {
@@ -7,7 +8,11 @@ interface IBody {
 }
 
 interface IReply {
-  200: { success: boolean };
+  200: {
+    success: boolean;
+    access?: string;
+    authenticatedUser?: string | JwtPayload;
+  };
   "4xx": { error: string };
   500: { error: string };
 }
@@ -15,11 +20,11 @@ interface IReply {
 export const loginController: RouteHandler<{
   Body: IBody;
   Reply: IReply;
-}> = async (request, fReply) => {
+}> = async (req, fReply) => {
   const reply = fReply.header("Content-Type", "application/json");
 
   try {
-    const { username: rawUsername, password } = request.body;
+    const { username: rawUsername, password } = req.body;
     const username = rawUsername.trim();
 
     if (!username || !password) {
@@ -41,7 +46,15 @@ export const loginController: RouteHandler<{
       return reply.code(401).send({ error: "Invalid email or password" });
     }
 
-    return reply.code(200).send({ success: true });
+    const token = authService.issueToken(user.id, user.username);
+    if (!token) {
+      throw new Error("Error issuing token");
+    }
+
+    return reply.code(200).send({
+      success: true,
+      access: token,
+    });
   } catch (err) {
     console.error("Unexpected error during login process", err);
 
@@ -49,4 +62,30 @@ export const loginController: RouteHandler<{
       .code(500)
       .send({ error: "An error occurred during login. Please try again." });
   }
+};
+
+export const authenticateController: RouteHandler<{
+  Reply: IReply;
+}> = async (req, fReply) => {
+  const reply = fReply.header("Content-Type", "application/json");
+  const bearerToken = req.headers.authorization;
+
+  if (!bearerToken) {
+    return reply.code(401).send({ error: "No access token provided" });
+  }
+
+  const token = bearerToken.split(" ")[1];
+  if (!token) {
+    return reply.code(401).send({ error: "No access token provided" });
+  }
+
+  const decoded = authService.verifyToken(token);
+  if (!decoded) {
+    return reply.code(401).send({ error: "Authentication failed" });
+  }
+
+  return reply.code(200).send({
+    success: true,
+    authenticatedUser: decoded,
+  });
 };

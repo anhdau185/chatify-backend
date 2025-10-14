@@ -1,17 +1,17 @@
 import bcrypt from "bcrypt";
-import { MOCK_USER } from "../mocks/index.js";
+import jwt from "jsonwebtoken";
+import { MOCK_USER_1 } from "../mocks/index.js";
 
 export async function findUserByUsername(username: string) {
   try {
     // TODO: implement actual "find by username" logic by querying from db or reading file from disk
-    if (username !== MOCK_USER.username) {
+    if (username !== MOCK_USER_1.username) {
       throw new Error("Invalid username");
     }
 
-    return MOCK_USER;
+    return MOCK_USER_1;
   } catch (err) {
     console.error("Error finding user", err);
-
     return null;
   }
 }
@@ -25,5 +25,29 @@ export async function comparePasswords(
   } catch (err) {
     console.error("Error comparing passwords", err);
     return false;
+  }
+}
+
+export function issueToken(userId: number, username: string) {
+  try {
+    const payload = { userId, username };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+
+    return token;
+  } catch (err) {
+    console.error("Error issuing token", err);
+    return null;
+  }
+}
+
+export function verifyToken(token: string) {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded;
+  } catch (err) {
+    console.error("Error verifying token", err);
+    return null;
   }
 }

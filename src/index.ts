@@ -1,7 +1,10 @@
 // import "module-alias/register.js";
 
+import dotenv from "dotenv";
 import fastify from "fastify";
 import authRoutes from "./routes/authRoutes.js";
+
+dotenv.config({ path: "./.env" });
 
 // test server health
 const server = fastify({ logger: true });
