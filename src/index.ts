@@ -1,7 +1,9 @@
 // import "module-alias/register.js";
 
+import cors from "@fastify/cors";
 import dotenv from "dotenv";
 import fastify from "fastify";
+
 import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config({ path: "./.env" });
@@ -10,7 +12,12 @@ dotenv.config({ path: "./.env" });
 const server = fastify({ logger: true });
 
 // register routes
-server.register(authRoutes);
+server
+  .register(cors, {
+    origin: ["http://localhost:3000", "https://api.chatify.com"], // frontend app's development/production server
+    credentials: true,
+  })
+  .register(authRoutes);
 
 server.get("/", async (request, reply) => {
   reply.send("pong!\n");
