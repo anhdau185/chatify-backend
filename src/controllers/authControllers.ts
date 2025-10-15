@@ -1,21 +1,9 @@
 import type { RouteHandler } from "fastify";
-import type { JwtPayload } from "jsonwebtoken";
+
 import * as authService from "../services/authService.js";
+import { IBody, IReply } from "../types/auth.js";
 
-interface IBody {
-  username: string;
-  password: string;
-}
-
-interface IReply {
-  200: {
-    success: boolean;
-    access?: string;
-    authenticatedUser?: string | JwtPayload;
-  };
-  "4xx": { error: string };
-  500: { error: string };
-}
+const COOKIE_NAME = "chatify_access_jwt";
 
 export const loginController: RouteHandler<{
   Body: IBody;
@@ -24,9 +12,7 @@ export const loginController: RouteHandler<{
   const reply = fReply.header("Content-Type", "application/json");
 
   try {
-    const { username: rawUsername, password } = req.body;
-    const username = rawUsername.trim();
-
+    const { username, password } = req.body;
     if (!username || !password) {
       return reply
         .code(400)
@@ -53,10 +39,18 @@ export const loginController: RouteHandler<{
       throw new Error("Error issuing token");
     }
 
-    return reply.code(200).send({
-      success: true,
-      access: token,
-    });
+    return reply
+      .setCookie(COOKIE_NAME, token, {
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
+      })
+      .code(200)
+      .send({
+        success: true,
+        access: token,
+      });
   } catch (err) {
     console.error("Unexpected error during login process", err);
 
@@ -69,14 +63,9 @@ export const loginController: RouteHandler<{
 export const authenticateController: RouteHandler<{
   Reply: IReply;
 }> = async (req, fReply) => {
+  const token = req.cookies[COOKIE_NAME];
   const reply = fReply.header("Content-Type", "application/json");
-  const bearerToken = req.headers.authorization;
 
-  if (!bearerToken) {
-    return reply.code(401).send({ error: "Authentication unsuccessful" });
-  }
-
-  const token = bearerToken.split(" ")[1];
   if (!token) {
     return reply.code(401).send({ error: "Authentication unsuccessful" });
   }

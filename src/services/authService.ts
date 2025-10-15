@@ -31,6 +31,10 @@ export async function comparePasswords(
 
 export function issueToken(userId: number, username: string) {
   try {
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT secret not correctly configured");
+    }
+
     const payload = { userId, username };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "24h",
@@ -45,6 +49,10 @@ export function issueToken(userId: number, username: string) {
 
 export function verifyToken(token: string) {
   try {
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT secret not correctly configured");
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     return decoded;
   } catch (err) {
