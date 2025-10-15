@@ -11,5 +11,5 @@ interface IBody {
 
 export default async function authRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: IBody }>("/auth/login", loginController);
-  fastify.post("/auth/authenticate", authenticateController);
+  fastify.post("/auth/me", authenticateController);
 }
