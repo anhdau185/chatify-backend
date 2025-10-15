@@ -39,18 +39,17 @@ export const loginController: RouteHandler<{
       throw new Error("Error issuing token");
     }
 
-    return reply
-      .setCookie(COOKIE_NAME, token, {
-        path: "/",
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
-      })
-      .code(200)
-      .send({
-        success: true,
-        access: token,
-      });
+    reply.setCookie(COOKIE_NAME, token, {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    return reply.code(200).send({
+      success: true,
+      access: token,
+    });
   } catch (err) {
     console.error("Unexpected error during login process", err);
 
@@ -79,4 +78,12 @@ export const authenticateController: RouteHandler<{
     success: true,
     authenticatedUser: decoded,
   });
+};
+
+export const logoutController: RouteHandler<{
+  Reply: IReply;
+}> = async (_, fReply) => {
+  const reply = fReply.header("Content-Type", "application/json");
+  reply.clearCookie(COOKIE_NAME, { path: "/" });
+  reply.code(200).send({ success: true });
 };
