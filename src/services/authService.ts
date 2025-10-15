@@ -4,7 +4,8 @@ import { MOCK_USER_1 } from "../mocks/index.js";
 
 export async function findUserByUsername(username: string) {
   try {
-    // TODO: implement actual "find by username" logic by querying from db or reading file from disk
+    // TODO: implement actual "find by username" logic
+    // by querying from db or reading file from disk
     if (username !== MOCK_USER_1.username) {
       throw new Error("Invalid username");
     }
