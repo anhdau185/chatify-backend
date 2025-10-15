@@ -28,13 +28,15 @@ export const loginController: RouteHandler<{
     const username = rawUsername.trim();
 
     if (!username || !password) {
-      return reply.code(400).send({ error: "Email and password are required" });
+      return reply
+        .code(400)
+        .send({ error: "Username and password are required" });
     }
 
     const user = await authService.findUserByUsername(username);
     if (!user) {
       // avoid being too specific for security reasons
-      return reply.code(401).send({ error: "Invalid email or password" });
+      return reply.code(401).send({ error: "Invalid username or password" });
     }
 
     const isPasswordValid = await authService.comparePasswords(
@@ -43,7 +45,7 @@ export const loginController: RouteHandler<{
     );
     if (!isPasswordValid) {
       // avoid being too specific for security reasons
-      return reply.code(401).send({ error: "Invalid email or password" });
+      return reply.code(401).send({ error: "Invalid username or password" });
     }
 
     const token = authService.issueToken(user.id, user.username);
@@ -60,7 +62,7 @@ export const loginController: RouteHandler<{
 
     return reply
       .code(500)
-      .send({ error: "An error occurred during login. Please try again." });
+      .send({ error: "Something went wrong on our end :(" });
   }
 };
 
@@ -71,17 +73,17 @@ export const authenticateController: RouteHandler<{
   const bearerToken = req.headers.authorization;
 
   if (!bearerToken) {
-    return reply.code(401).send({ error: "No access token provided" });
+    return reply.code(401).send({ error: "Authentication unsuccessful" });
   }
 
   const token = bearerToken.split(" ")[1];
   if (!token) {
-    return reply.code(401).send({ error: "No access token provided" });
+    return reply.code(401).send({ error: "Authentication unsuccessful" });
   }
 
   const decoded = authService.verifyToken(token);
   if (!decoded) {
-    return reply.code(401).send({ error: "Authentication failed" });
+    return reply.code(401).send({ error: "Authentication unsuccessful" });
   }
 
   return reply.code(200).send({
