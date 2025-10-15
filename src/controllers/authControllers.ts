@@ -4,6 +4,7 @@ import * as authService from "../services/authService.js";
 import { IBody, IReply } from "../types/auth.js";
 
 const COOKIE_NAME = "chatify_access_jwt";
+const COOKIE_MAX_AGE_SECS = 24 * 60 * 60; // 24 hours
 
 export const loginController: RouteHandler<{
   Body: IBody;
@@ -44,6 +45,7 @@ export const loginController: RouteHandler<{
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
+      maxAge: COOKIE_MAX_AGE_SECS,
     });
 
     return reply.code(200).send({
