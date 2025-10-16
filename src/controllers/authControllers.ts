@@ -6,6 +6,9 @@ import { IBody, IReply } from "../types/auth.js";
 const COOKIE_NAME = "chatify_access_jwt";
 const COOKIE_MAX_AGE_SECS = 24 * 60 * 60; // 24 hours
 
+const MIN_USERNAME_LENGTH = 6;
+const MIN_PASSWORD_LENGTH = 6;
+
 export const loginController: RouteHandler<{
   Body: IBody;
   Reply: IReply;
@@ -20,9 +23,25 @@ export const loginController: RouteHandler<{
         .send({ error: "Username and password are required" });
     }
 
+    // check credentials length
+    const usernameTooShort = username.length < MIN_USERNAME_LENGTH;
+    if (usernameTooShort) {
+      return reply.code(400).send({
+        error: `Username must be at least ${MIN_USERNAME_LENGTH} characters long`,
+      });
+    }
+
+    const passwordTooShort = password.length < MIN_PASSWORD_LENGTH;
+    if (passwordTooShort) {
+      return reply.code(400).send({
+        error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters long`,
+      });
+    }
+
+    // try querying the user
     const user = await authService.findUserByUsername(username);
     if (!user) {
-      // avoid being too specific for security reasons
+      // avoid being too specific about the invalid credential for security reasons
       return reply.code(401).send({ error: "Invalid username or password" });
     }
 
