@@ -9,7 +9,7 @@ interface IReply {
   200: {
     success: boolean;
     access?: string;
-    authenticatedUser?: string | JwtPayload;
+    authenticatedUser?: string | JwtPayload | Record<string, unknown>;
   };
   "4xx": { error: string };
   500: { error: string };

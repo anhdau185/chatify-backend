@@ -1,4 +1,5 @@
 import type { RouteHandler } from "fastify";
+import { omit } from "lodash-es";
 
 import * as authService from "../services/authService.js";
 import { IBody, IReply } from "../types/auth.js";
@@ -70,6 +71,7 @@ export const loginController: RouteHandler<{
     return reply.code(200).send({
       success: true,
       access: token,
+      authenticatedUser: omit(user, ["hashedPassword"]),
     });
   } catch (err) {
     console.error("Unexpected error during login process", err);
