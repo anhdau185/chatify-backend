@@ -1,5 +1,3 @@
-// import "module-alias/register.js";
-
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import dotenv from "dotenv";
