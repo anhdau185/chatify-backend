@@ -6,8 +6,8 @@ import type {
   IReplyAuth,
   IReplyLogin,
   IReplyLogout,
-} from "../types/auth.js";
-import type { PublicUser } from "../types/user.js";
+} from "../shared/types/auth.js";
+import type { PublicUser } from "../shared/types/user.js";
 
 const COOKIE_NAME = "chatify_access_jwt";
 const COOKIE_MAX_AGE_SECS = 24 * 60 * 60; // 24 hours

@@ -10,7 +10,7 @@ import type {
   IReplyAuth,
   IReplyLogin,
   IReplyLogout,
-} from "../types/auth.js";
+} from "../shared/types/auth.js";
 
 export default async function authRoutes(fastify: FastifyInstance) {
   fastify.post<{
