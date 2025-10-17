@@ -1,4 +1,4 @@
-import { JwtPayload } from "jsonwebtoken";
+import type { PublicUser } from "../models/user.js";
 
 interface IBody {
   username: string;
@@ -8,11 +8,15 @@ interface IBody {
 interface IReply {
   200: {
     success: boolean;
-    access?: string;
-    authenticatedUser?: string | JwtPayload | Record<string, unknown>;
+    access: string;
+    authenticatedUser: PublicUser;
   };
   "4xx": { error: string };
   500: { error: string };
 }
 
-export { IBody, IReply };
+interface IReplyLogout extends Pick<IReply, "4xx" | 500> {
+  200: { success: boolean };
+}
+
+export type { IBody, IReply, IReplyLogout };
