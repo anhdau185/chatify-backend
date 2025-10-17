@@ -1,22 +1,30 @@
-import type { PublicUser } from "../models/user.js";
+import type { PublicUser } from "../types/user.js";
 
-interface IBody {
+interface IError {
+  error: string;
+}
+
+interface IBodyLogin {
   username: string;
   password: string;
 }
 
-interface IReply {
+interface IReplyLogin {
   200: {
     success: boolean;
     access: string;
     authenticatedUser: PublicUser;
   };
-  "4xx": { error: string };
-  500: { error: string };
+  "4xx": IError;
+  500: IError;
 }
 
-interface IReplyLogout extends Pick<IReply, "4xx" | 500> {
+interface IReplyAuth extends IReplyLogin {}
+
+interface IReplyLogout {
   200: { success: boolean };
+  "4xx": IError;
+  500: IError;
 }
 
-export type { IBody, IReply, IReplyLogout };
+export type { IBodyLogin, IReplyAuth, IReplyLogin, IReplyLogout };

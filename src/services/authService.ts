@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { MOCK_USER_1 } from "../mocks/index.js";
+import type { PublicUser } from "../types/user.js";
 
 export async function findUserByUsername(username: string) {
   try {
@@ -29,13 +30,13 @@ export async function comparePasswords(
   }
 }
 
-export function issueToken(userId: number, username: string) {
+export function issueToken(user: PublicUser) {
   try {
     if (!process.env.JWT_SECRET) {
       throw new Error("JWT secret not correctly configured");
     }
 
-    const payload = { userId, username };
+    const payload = { ...user };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
@@ -53,7 +54,7 @@ export function verifyToken(token: string) {
       throw new Error("JWT secret not correctly configured");
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as PublicUser;
     return decoded;
   } catch (err) {
     console.error("Error verifying token", err);

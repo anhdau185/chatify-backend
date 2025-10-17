@@ -5,17 +5,24 @@ import {
   loginController,
   logoutController,
 } from "../controllers/authControllers.js";
-import { IBody, IReply } from "../types/auth.js";
+import type {
+  IBodyLogin,
+  IReplyAuth,
+  IReplyLogin,
+  IReplyLogout,
+} from "../types/auth.js";
 
 export default async function authRoutes(fastify: FastifyInstance) {
   fastify.post<{
-    Body: IBody;
-    Reply: IReply;
+    Body: IBodyLogin;
+    Reply: IReplyLogin;
   }>("/auth/login", loginController);
 
   fastify.get<{
-    Reply: IReply;
+    Reply: IReplyAuth;
   }>("/auth/me", authenticateController);
 
-  fastify.get("/auth/logout", logoutController);
+  fastify.get<{
+    Reply: IReplyLogout;
+  }>("/auth/logout", logoutController);
 }

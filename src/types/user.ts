@@ -1,3 +1,5 @@
+import type { JwtPayload } from "jsonwebtoken";
+
 interface User {
   id: number;
   name: string;
@@ -6,6 +8,6 @@ interface User {
   hashedPassword: string;
 }
 
-type PublicUser = Omit<User, "hashedPassword">;
+interface PublicUser extends Omit<User, "hashedPassword">, JwtPayload {}
 
 export type { PublicUser, User };
