@@ -111,6 +111,9 @@ export const authenticateController: RouteHandler<{
 
     const authenticatedUser = authService.verifyToken(token);
     if (!authenticatedUser) {
+      // log the user out when an expired token is detected
+      jsonReply.clearCookie(COOKIE_NAME, { path: "/" });
+
       return jsonReply.code(401).send({ error: "Authentication unsuccessful" });
     }
 
