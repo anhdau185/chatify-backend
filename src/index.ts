@@ -3,7 +3,7 @@ import cors from "@fastify/cors";
 import dotenv from "dotenv";
 import fastify from "fastify";
 
-import authRoutes from "./routes/authRoutes.js";
+import { authRoutes } from "./modules/auth/index.js";
 
 dotenv.config({ path: "./.env" });
 

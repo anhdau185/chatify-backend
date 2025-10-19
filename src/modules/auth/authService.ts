@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+
 import { MOCK_USER_1 } from "../shared/mocks/index.js";
 import type { PublicUser } from "../shared/types/user.js";
 

@@ -1,16 +1,16 @@
 import type { FastifyInstance } from "fastify";
 
-import {
-  authenticateController,
-  loginController,
-  logoutController,
-} from "../controllers/authControllers.js";
 import type {
   IBodyLogin,
   IReplyAuth,
   IReplyLogin,
   IReplyLogout,
 } from "../shared/types/auth.js";
+import {
+  authenticateController,
+  loginController,
+  logoutController,
+} from "./authControllers.js";
 
 export default async function authRoutes(fastify: FastifyInstance) {
   fastify.post<{

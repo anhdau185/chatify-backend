@@ -1,6 +1,5 @@
 import type { RouteHandler } from "fastify";
 
-import * as authService from "../services/authService.js";
 import type {
   IBodyLogin,
   IReplyAuth,
@@ -8,6 +7,7 @@ import type {
   IReplyLogout,
 } from "../shared/types/auth.js";
 import type { PublicUser } from "../shared/types/user.js";
+import * as authService from "./authService.js";
 
 const COOKIE_NAME = "chatify_access_jwt";
 const COOKIE_MAX_AGE_SECS = 24 * 60 * 60; // 24 hours
