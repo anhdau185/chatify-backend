@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import { MOCK_USER_1 } from "../shared/mocks/index.js";
-import type { PublicUser } from "../shared/types/user.js";
+import type { PublicUser } from "../user/index.js";
+import { MOCK_USER_1 } from "../user/index.js";
 
 export async function findUserByUsername(username: string) {
   try {

@@ -1,4 +1,4 @@
-import type { PublicUser } from "./user.js";
+import type { PublicUser } from "../user/index.js";
 
 interface IError {
   error: string;
