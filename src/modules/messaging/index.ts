@@ -1,63 +1,53 @@
-import type { WebSocket } from "@fastify/websocket";
 import type { FastifyInstance } from "fastify";
 
-type Message =
-  | {
-      type: "join";
-      roomId: string;
-    }
-  | {
-      type: "message";
-      roomId: string;
-      text: string;
-    };
-
-const rooms = new Map<string, Set<WebSocket>>();
-const COOKIE_NAME = "chatify_access_jwt";
+import { COOKIE_NAME } from "../shared/constants.js";
+import * as messagingService from "./messaging.service.js";
 
 export default async function messagingRoutes(fastify: FastifyInstance) {
-  fastify.get("/ws", { websocket: true }, (socket, request) => {
-    // TODO: authenticate user here
-    const token = request.cookies[COOKIE_NAME];
-    console.log(`${COOKIE_NAME}=${token}`);
+  fastify.get(
+    "/ws",
+    {
+      websocket: true,
+      preHandler: (request, reply, done) => {
+        const jsonReply = reply.header("Content-Type", "application/json");
 
-    socket.on("message", (raw) => {
-      const msg: Message = JSON.parse(raw.toString());
-
-      switch (msg.type) {
-        case "join":
-          if (!rooms.has(msg.roomId)) {
-            rooms.set(msg.roomId, new Set());
+        try {
+          // Authenticate the user before establishing WebSocket connection
+          const token = request.cookies[COOKIE_NAME];
+          if (!token) {
+            return jsonReply
+              .code(401)
+              .send({ error: "Authentication unsuccessful" });
           }
 
-          const roomToJoin = rooms.get(msg.roomId);
-          if (roomToJoin) {
-            roomToJoin.add(socket);
-            console.log(`a person has been added to the room ${msg.roomId}`);
+          if (!process.env.JWT_SECRET) {
+            throw new Error("JWT secret not correctly configured");
           }
-          break;
 
-        case "message":
-          const roomToBroadcast = rooms.get(msg.roomId);
-          if (roomToBroadcast) {
-            roomToBroadcast.forEach((client) => {
-              if (client !== socket) {
-                client.send(JSON.stringify(msg));
-                console.log(
-                  `sent "${msg.text}" to a person in the room "${msg.roomId}"`
-                );
-              }
-            });
+          try {
+            request.server.jwt.verify(token);
+          } catch {
+            return jsonReply
+              .code(401)
+              .send({ error: "Authentication unsuccessful" });
           }
-          break;
-      }
-    });
 
-    // Remove connection from every room upon socket close
-    socket.on("close", () => {
-      for (const room of rooms.values()) {
-        room.delete(socket);
-      }
-    });
-  });
+          // User is authenticated, allow the connection to proceed
+          done();
+        } catch (err) {
+          console.error(
+            "Unexpected error during WebSocket upgrade process",
+            err
+          );
+
+          return jsonReply
+            .code(500)
+            .send({ error: "Something went wrong on our end :(" });
+        }
+      },
+    },
+    (socket) => {
+      messagingService.handleIncomingClient(socket);
+    }
+  );
 }
