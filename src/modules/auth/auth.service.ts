@@ -41,7 +41,6 @@ export function issueToken(user: PublicUser) {
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
-
     return token;
   } catch (err) {
     console.error("Error issuing token", err);

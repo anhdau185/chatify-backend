@@ -1,5 +1,6 @@
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
+import fastifyJwt from "@fastify/jwt";
 import websocket from "@fastify/websocket";
 import dotenv from "dotenv";
 import fastify from "fastify";
@@ -19,6 +20,9 @@ server
   })
   .register(cookie)
   .register(websocket)
+  .register(fastifyJwt, {
+    secret: process.env.JWT_SECRET || "",
+  })
   .register(authRoutes)
   .register(messagingRoutes);
 

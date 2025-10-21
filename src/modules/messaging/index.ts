@@ -18,7 +18,8 @@ const COOKIE_NAME = "chatify_access_jwt";
 export default async function messagingRoutes(fastify: FastifyInstance) {
   fastify.get("/ws", { websocket: true }, (socket, request) => {
     // TODO: authenticate user here
-    console.log(`${COOKIE_NAME}=${request.cookies[COOKIE_NAME]}`);
+    const token = request.cookies[COOKIE_NAME];
+    console.log(`${COOKIE_NAME}=${token}`);
 
     socket.on("message", (raw) => {
       const msg: Message = JSON.parse(raw.toString());
