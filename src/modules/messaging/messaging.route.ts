@@ -7,7 +7,7 @@ import {
 
 export default async function messagingRoutes(fastify: FastifyInstance) {
   fastify.get(
-    "/ws",
+    "/messaging/ws",
     {
       websocket: true,
       preHandler: wsConnectionPreHandler, // verify user here before upgrading to websocket
