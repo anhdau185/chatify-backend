@@ -1,19 +1,34 @@
+import type { PublicUser } from "../user/index.js";
+
 interface ChatRoom {
   id: string;
   name?: string; // for group chats
-  members: string[]; // user IDs
+  members: Array<PublicUser["id"]>; // user IDs
   isGroup: boolean;
 }
 
-interface Message {
+interface ChatMessage {
   id: string;
-  roomId: string;
-  senderId: string;
+  roomId: ChatRoom["id"];
+  senderId: PublicUser["id"];
   content?: string;
   imageUrl?: string;
   reactions?: Record<string, string[]>; // emoji -> userIds[]
-  createdAt: number;
   status: "sending" | "sent" | "failed"; // add 'read' later
+  createdAt: number;
 }
 
-export type { ChatRoom, Message };
+type WsMessage =
+  | {
+      type: "join";
+      payload: {
+        roomId: ChatRoom["id"];
+        senderId: PublicUser["id"];
+      };
+    }
+  | {
+      type: "message";
+      payload: ChatMessage;
+    };
+
+export type { ChatMessage, ChatRoom, WsMessage };

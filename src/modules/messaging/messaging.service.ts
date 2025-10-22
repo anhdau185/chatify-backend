@@ -1,47 +1,37 @@
 import type { WebSocket } from "@fastify/websocket";
 
-type Message =
-  | {
-      type: "join";
-      roomId: string;
-    }
-  | {
-      type: "message";
-      roomId: string;
-      text: string;
-    };
+import type { WsMessage } from "./messaging.type.js";
 
 const rooms = new Map<string, Set<WebSocket>>();
 
 export function handleIncomingClient(socket: WebSocket) {
   socket.on("message", (raw) => {
-    const msg: Message = JSON.parse(raw.toString());
+    const msg: WsMessage = JSON.parse(raw.toString());
+    const { roomId, senderId } = msg.payload;
 
     switch (msg.type) {
       case "join":
-        if (!rooms.has(msg.roomId)) {
-          rooms.set(msg.roomId, new Set());
+        if (!rooms.has(roomId)) {
+          rooms.set(roomId, new Set());
         }
 
-        const roomToJoin = rooms.get(msg.roomId);
-        if (roomToJoin) {
-          roomToJoin.add(socket);
-          console.log(`a person has been added to the room ${msg.roomId}`);
-        }
+        const roomToJoin = rooms.get(roomId);
+        if (!roomToJoin) return;
+
+        roomToJoin.add(socket);
+        console.log(`user ${senderId} has been added to room ${roomId}`);
         break;
 
       case "message":
-        const roomToBroadcast = rooms.get(msg.roomId);
-        if (roomToBroadcast) {
-          roomToBroadcast.forEach((client) => {
-            if (client !== socket) {
-              client.send(JSON.stringify(msg));
-              console.log(
-                `sent "${msg.text}" to a person in the room "${msg.roomId}"`
-              );
-            }
-          });
-        }
+        const roomToBroadcast = rooms.get(roomId);
+        if (!roomToBroadcast) return;
+
+        roomToBroadcast.forEach((client) => {
+          if (client !== socket) client.send(JSON.stringify(msg));
+        });
+        console.log(
+          `sent "${msg.payload.content}" to everyone in the room "${roomId}"`
+        );
         break;
     }
   });
