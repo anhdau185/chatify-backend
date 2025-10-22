@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import fastify from "fastify";
 
 import { authRoutes } from "./modules/auth/index.js";
-import messagingRoutes from "./modules/messaging/index.js";
+import { messagingRoutes } from "./modules/messaging/index.js";
 
 dotenv.config({ path: "./.env" });
 
