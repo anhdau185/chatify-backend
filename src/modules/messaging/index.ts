@@ -28,6 +28,9 @@ export default async function messagingRoutes(fastify: FastifyInstance) {
           try {
             fastify.jwt.verify(token);
           } catch {
+            // log the user out when an expired token is detected
+            jsonReply.clearCookie(COOKIE_NAME, { path: "/" });
+
             return jsonReply
               .code(401)
               .send({ error: "Authentication unsuccessful" });
