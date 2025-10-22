@@ -19,6 +19,7 @@ export const loginController: RouteHandler<{
   Body: IBodyLogin;
   Reply: IReplyLogin;
 }> = async (request, reply) => {
+  const fastify = request.server;
   const jsonReply = reply.header("Content-Type", "application/json");
 
   try {
@@ -71,10 +72,13 @@ export const loginController: RouteHandler<{
       username: user.username,
     };
 
-    const token = authService.issueToken(authenticatedUser);
-    if (!token) {
-      throw new Error("Error issuing token");
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT secret not correctly configured");
     }
+
+    const token = fastify.jwt.sign(authenticatedUser, {
+      expiresIn: "24h",
+    });
 
     jsonReply.setCookie(COOKIE_NAME, token, {
       path: "/",
@@ -101,6 +105,7 @@ export const loginController: RouteHandler<{
 export const authenticateController: RouteHandler<{
   Reply: IReplyAuth;
 }> = async (request, reply) => {
+  const fastify = request.server;
   const jsonReply = reply.header("Content-Type", "application/json");
 
   try {
@@ -109,8 +114,14 @@ export const authenticateController: RouteHandler<{
       return jsonReply.code(401).send({ error: "Authentication unsuccessful" });
     }
 
-    const authenticatedUser = authService.verifyToken(token);
-    if (!authenticatedUser) {
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT secret not correctly configured");
+    }
+
+    let authenticatedUser: PublicUser;
+    try {
+      authenticatedUser = fastify.jwt.verify(token);
+    } catch {
       // log the user out when an expired token is detected
       jsonReply.clearCookie(COOKIE_NAME, { path: "/" });
 

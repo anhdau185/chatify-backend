@@ -9,6 +9,7 @@ export default async function messagingRoutes(fastify: FastifyInstance) {
     {
       websocket: true,
       preHandler: (request, reply, done) => {
+        const fastify = request.server;
         const jsonReply = reply.header("Content-Type", "application/json");
 
         try {
@@ -25,7 +26,7 @@ export default async function messagingRoutes(fastify: FastifyInstance) {
           }
 
           try {
-            request.server.jwt.verify(token);
+            fastify.jwt.verify(token);
           } catch {
             return jsonReply
               .code(401)
