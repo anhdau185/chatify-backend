@@ -3,7 +3,7 @@ import type { PublicUser } from "../user/index.js";
 interface ChatRoom {
   id: string;
   name?: string; // for group chats
-  members: Array<PublicUser["id"]>; // user IDs
+  members: PublicUser[];
   isGroup: boolean;
 }
 
@@ -11,6 +11,7 @@ interface ChatMessage {
   id: string;
   roomId: ChatRoom["id"];
   senderId: PublicUser["id"];
+  senderName: PublicUser["name"];
   content?: string;
   imageUrl?: string;
   reactions?: Record<string, string[]>; // emoji -> userIds[]
