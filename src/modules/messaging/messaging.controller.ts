@@ -1,10 +1,11 @@
 import type { WebSocket } from "@fastify/websocket";
-import type { preHandlerMetaHookHandler } from "fastify/types/hooks.js";
+import type { RouteHandler } from "fastify";
+import type { preHandlerMetaHookHandler as PreHandlerController } from "fastify/types/hooks.js";
 
 import { COOKIE_NAME } from "../shared/constants.js";
 import * as messagingService from "./messaging.service.js";
 
-export const wsConnectionPreHandler: preHandlerMetaHookHandler = (
+export const wsConnectionPreHandler: PreHandlerController = (
   request,
   reply,
   done
@@ -45,4 +46,39 @@ export const wsConnectionPreHandler: preHandlerMetaHookHandler = (
 
 export const wsConnectionHandler = (socket: WebSocket) => {
   messagingService.handleIncomingClient(socket);
+};
+
+export const getChatRoomsController: RouteHandler<{
+  Querystring: { userId: string };
+}> = async (request, reply) => {
+  const jsonReply = reply.header("Content-Type", "application/json");
+
+  try {
+    if (!request.query.userId) {
+      return jsonReply
+        .code(400)
+        .send({ error: "userId is required as a query parameter" });
+    }
+
+    const userId = parseInt(request.query.userId);
+
+    if (!isFinite(userId) || userId <= 0) {
+      return jsonReply
+        .code(400)
+        .send({ error: "userId must be a valid positive integer" });
+    }
+
+    const rooms = await messagingService.getChatRoomsByUserId(userId);
+
+    return jsonReply.code(200).send({
+      success: true,
+      data: rooms,
+    });
+  } catch (err) {
+    console.error("Unexpected error during logout process", err);
+
+    return jsonReply
+      .code(500)
+      .send({ error: "Something went wrong on our end :(" });
+  }
 };

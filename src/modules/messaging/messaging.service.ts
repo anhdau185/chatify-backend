@@ -1,6 +1,7 @@
 import type { WebSocket } from "@fastify/websocket";
 
-import type { WsMessage } from "./messaging.type.js";
+import { ALL_MOCK_CHAT_ROOMS } from "./messaging.db.js";
+import type { ChatRoom, WsMessage } from "./messaging.type.js";
 
 const rooms = new Map<string, Set<WebSocket>>();
 
@@ -56,4 +57,14 @@ export function handleIncomingClient(socket: WebSocket) {
       room.delete(socket);
     }
   });
+}
+
+export async function getChatRoomsByUserId(
+  userId: number
+): Promise<ChatRoom[]> {
+  const rooms = ALL_MOCK_CHAT_ROOMS.filter((room) =>
+    room.members.some((member) => member.id === userId)
+  );
+
+  return rooms;
 }
