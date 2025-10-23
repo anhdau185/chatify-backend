@@ -11,26 +11,40 @@ export function handleIncomingClient(socket: WebSocket) {
 
     switch (msg.type) {
       case "join":
+        console.log(
+          `received a request to join room ${msg.payload.roomId} from user ${msg.payload.senderId}`
+        );
+
         if (!rooms.has(roomId)) {
           rooms.set(roomId, new Set());
         }
 
         const roomToJoin = rooms.get(roomId);
-        if (!roomToJoin) return;
+
+        if (!roomToJoin) {
+          return;
+        }
 
         roomToJoin.add(socket);
         console.log(`user ${senderId} has been added to room ${roomId}`);
         break;
 
-      case "message":
+      case "chat":
+        console.log(
+          `received message "${msg.payload.content}" (uuid: ${msg.payload.id}) from sender ${msg.payload.senderId}`
+        );
+
         const roomToBroadcast = rooms.get(roomId);
-        if (!roomToBroadcast) return;
+
+        if (!roomToBroadcast) {
+          return;
+        }
 
         roomToBroadcast.forEach((client) => {
           if (client !== socket) client.send(JSON.stringify(msg));
         });
         console.log(
-          `sent "${msg.payload.content}" to everyone in the room "${roomId}"`
+          `sent message ${msg.payload.id} to everyone in room ${roomId} (if there are any)`
         );
         break;
     }

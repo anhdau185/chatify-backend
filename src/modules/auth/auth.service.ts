@@ -1,18 +1,21 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import type { PublicUser } from "../user/index.js";
-import { MOCK_USER_1 } from "../user/index.js";
+import type { PublicUser, User } from "../user/index.js";
+import { ALL_MOCK_USERS } from "../user/index.js";
 
-export async function findUserByUsername(username: string) {
+export async function findUserByUsername(
+  username: string
+): Promise<User | null> {
   try {
-    // TODO: implement actual "find by username" logic
-    // by querying from db or reading file from disk
-    if (username !== MOCK_USER_1.username) {
-      throw new Error("Invalid username");
+    // TODO: implement actual "find by username" logic by querying from db or reading file from disk
+    const user = ALL_MOCK_USERS.find((user) => user.username === username);
+
+    if (!user) {
+      throw new Error("User not found");
     }
 
-    return MOCK_USER_1;
+    return user;
   } catch (err) {
     console.error("Error finding user", err);
     return null;
