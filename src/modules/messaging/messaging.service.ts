@@ -4,6 +4,7 @@ import { ALL_MOCK_CHAT_ROOMS } from "./messaging.db.js";
 import type { ChatRoom, WsMessage } from "./messaging.type.js";
 
 const rooms = new Map<string, Set<WebSocket>>();
+// const users = new Map<number, Set<string>>();
 
 export function handleIncomingClient(socket: WebSocket) {
   socket.on("message", (raw) => {
@@ -26,6 +27,23 @@ export function handleIncomingClient(socket: WebSocket) {
           return;
         }
 
+        // track user's rooms (optional, for future use)
+        // if (!users.has(senderId)) {
+        //   users.set(senderId, new Set());
+        // }
+
+        // const userRooms = users.get(senderId);
+
+        // if (!userRooms) {
+        //   return;
+        // }
+
+        // if (userRooms.has(roomId)) {
+        //   console.log(`user ${senderId} is already in room ${roomId}`);
+        //   return;
+        // }
+
+        // userRooms.add(roomId);
         roomToJoin.add(socket);
         console.log(`user ${senderId} has been added to room ${roomId}`);
         break;
