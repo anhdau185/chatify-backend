@@ -1,6 +1,6 @@
 import type { WebSocket } from "@fastify/websocket";
 
-import { ALL_MOCK_CHAT_ROOMS } from "./messaging.db.js";
+import { ALL_MOCK_CHAT_ROOMS } from "./messaging.mockdb.js";
 import type { ChatRoom, WsMessage } from "./messaging.type.js";
 
 const rooms = new Map<string, Set<WebSocket>>();

@@ -5,8 +5,8 @@ interface ChatRoom {
   name?: string; // for group chats
   members: PublicUser[];
   isGroup: boolean;
-  lastMsg?: ChatMessage;
-  lastMsgAt?: number;
+  lastMsgAt: number; // timestamp, 0 if no messages yet
+  lastMsg?: ChatMessage; // unavailble if lastMsgAt is 0
 }
 
 interface ChatMessage {

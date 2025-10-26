@@ -1,3 +1,3 @@
-export * from "./messaging.db.js";
+export * from "./messaging.mockdb.js";
 export { default as messagingRoutes } from "./messaging.route.js";
 export type * from "./messaging.type.js";
