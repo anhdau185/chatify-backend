@@ -49,6 +49,7 @@ export function handleIncomingClient(socket: WebSocket) {
         break;
 
       case "chat":
+      case "react":
         console.log(
           `received message "${msg.payload.content}" (uuid: ${msg.payload.id}) from sender ${msg.payload.senderId}`
         );
