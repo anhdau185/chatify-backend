@@ -3,49 +3,49 @@ import type { WebSocket } from "@fastify/websocket";
 import { ALL_MOCK_CHAT_ROOMS } from "./messaging.mockdb.js";
 import type { ChatRoom, WsMessage } from "./messaging.type.js";
 
-const rooms = new Map<string, Set<WebSocket>>();
+const roomsMap = new Map<string, Set<WebSocket>>();
 // const users = new Map<number, Set<string>>();
+// track user's rooms (optional, for future use)
+// if (!users.has(senderId)) {
+//   users.set(senderId, new Set());
+// }
+// const userRooms = users.get(senderId);
+// if (!userRooms) {
+//   return;
+// }
+// if (userRooms.has(roomId)) {
+//   console.log(`user ${senderId} is already in room ${roomId}`);
+//   return;
+// }
+// userRooms.add(roomId);
 
 export function handleIncomingClient(socket: WebSocket) {
   socket.on("message", (raw) => {
     const msg: WsMessage = JSON.parse(raw.toString());
-    const { roomId, senderId } = msg.payload;
 
     switch (msg.type) {
       case "join":
-        console.log(
-          `received a request to join room ${msg.payload.roomId} from user ${msg.payload.senderId}`
-        );
+        msg.payload.roomIds.forEach((roomId) => {
+          console.log(
+            `received a request to join room ${roomId} from user ${msg.payload.senderId}`
+          );
 
-        if (!rooms.has(roomId)) {
-          rooms.set(roomId, new Set());
-        }
+          if (!roomsMap.has(roomId)) {
+            roomsMap.set(roomId, new Set());
+          }
 
-        const roomToJoin = rooms.get(roomId);
+          const roomToJoin = roomsMap.get(roomId);
 
-        if (!roomToJoin) {
-          return;
-        }
+          if (!roomToJoin) {
+            return;
+          }
 
-        // track user's rooms (optional, for future use)
-        // if (!users.has(senderId)) {
-        //   users.set(senderId, new Set());
-        // }
+          roomToJoin.add(socket);
+          console.log(
+            `user ${msg.payload.senderId} has been added to room ${roomId}`
+          );
+        });
 
-        // const userRooms = users.get(senderId);
-
-        // if (!userRooms) {
-        //   return;
-        // }
-
-        // if (userRooms.has(roomId)) {
-        //   console.log(`user ${senderId} is already in room ${roomId}`);
-        //   return;
-        // }
-
-        // userRooms.add(roomId);
-        roomToJoin.add(socket);
-        console.log(`user ${senderId} has been added to room ${roomId}`);
         break;
 
       case "chat":
@@ -53,7 +53,7 @@ export function handleIncomingClient(socket: WebSocket) {
           `received message "${msg.payload.content}" (uuid: ${msg.payload.id}) from sender ${msg.payload.senderId}`
         );
 
-        const roomToBroadcast = rooms.get(roomId);
+        const roomToBroadcast = roomsMap.get(msg.payload.roomId);
 
         if (!roomToBroadcast) {
           return;
@@ -63,7 +63,7 @@ export function handleIncomingClient(socket: WebSocket) {
           if (client !== socket) client.send(JSON.stringify(msg));
         });
         console.log(
-          `sent message ${msg.payload.id} to everyone in room ${roomId} (if there are any)`
+          `sent message ${msg.payload.id} to everyone in room ${msg.payload.roomId} (if there are any)`
         );
         break;
     }
@@ -71,7 +71,7 @@ export function handleIncomingClient(socket: WebSocket) {
 
   // Remove connection from every room upon socket close
   socket.on("close", () => {
-    for (const room of rooms.values()) {
+    for (const room of roomsMap.values()) {
       room.delete(socket);
     }
   });
