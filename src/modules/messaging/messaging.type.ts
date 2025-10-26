@@ -21,7 +21,7 @@ interface ChatMessage {
   senderName: string;
   content?: string;
   imageUrl?: string;
-  reactions?: Record<string, string[]>; // emoji -> userIds[]
+  reactions: Record<string, Array<{ userId: number; name: string }>>; // emoji -> user[]
   status: "sending" | "sent" | "failed"; // add 'read' later
   createdAt: number;
 }
@@ -43,6 +43,11 @@ interface WsMessageChat {
   payload: WsPayloadChat;
 }
 
+interface WsMessageReact {
+  type: "react";
+  payload: WsPayloadChat;
+}
+
 type WsMessage = WsMessageJoin | WsMessageChat;
 
 export type {
@@ -52,6 +57,7 @@ export type {
   WsMessage,
   WsMessageChat,
   WsMessageJoin,
+  WsMessageReact,
   WsPayloadChat,
   WsPayloadJoin,
 };
