@@ -8,8 +8,8 @@
   "scripts": {
     "dev": "nodemon --watch src dist/index.js",
     "dev-ts": "ts-node src/index.ts",
-    "build": "tsc --build --force tsconfig.json && cp .env ./dist/.env",
-    "start": "node --experimental-modules dist/index.js"
+    "build": "rm -rf dist && tsc --build --force tsconfig.json && cp .env ./dist/.env",
+    "start": "npm run build && node --experimental-modules dist/index.js"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
