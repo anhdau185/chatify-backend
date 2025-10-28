@@ -1,3 +1,4 @@
+import websocket from "@fastify/websocket";
 import type { FastifyInstance } from "fastify";
 
 import {
@@ -7,6 +8,8 @@ import {
 } from "./messaging.controller.js";
 
 export default async function messagingRoutes(fastify: FastifyInstance) {
+  await fastify.register(websocket);
+
   fastify.get(
     "/messaging/ws",
     {

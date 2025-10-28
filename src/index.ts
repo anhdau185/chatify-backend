@@ -1,7 +1,6 @@
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
-import websocket from "@fastify/websocket";
 import dotenv from "dotenv";
 import fastify from "fastify";
 
@@ -12,14 +11,13 @@ dotenv.config({ path: "./.env" });
 
 const server = fastify({ logger: true });
 
-// register plugins and routes
+// register global plugins and routes
 server
   .register(cors, {
     origin: ["http://localhost:3000"], // whitelist trusted origins here
     credentials: true,
   })
   .register(cookie)
-  .register(websocket)
   .register(fastifyJwt, {
     secret: process.env.JWT_SECRET || "",
   })
