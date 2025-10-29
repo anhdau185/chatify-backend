@@ -15,4 +15,9 @@ function getBearerToken(request: FastifyRequest) {
   return token;
 }
 
-export { getBearerToken };
+async function drainStream(stream: AsyncIterable<unknown>) {
+  for await (const _ of stream) {
+  }
+}
+
+export { drainStream, getBearerToken };
