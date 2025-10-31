@@ -1,4 +1,4 @@
-import type { WebSocket } from "@fastify/websocket";
+import type { WebsocketHandler } from "@fastify/websocket";
 import type { RouteHandler } from "fastify";
 import type { preHandlerMetaHookHandler as PreHandlerController } from "fastify/types/hooks.js";
 
@@ -44,7 +44,7 @@ export const wsConnectionPreHandler: PreHandlerController = (
   }
 };
 
-export const wsConnectionHandler = (socket: WebSocket) => {
+export const wsConnectionHandler: WebsocketHandler = (socket, request) => {
   messagingService.handleIncomingClient(socket);
 };
 
