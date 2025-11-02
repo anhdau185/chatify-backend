@@ -1,7 +1,12 @@
 import type { WebSocket } from "@fastify/websocket";
 
 import { ALL_MOCK_CHAT_ROOMS } from "./messaging.mockdb.js";
-import type { ChatRoom, WsMessage } from "./messaging.type.js";
+import type {
+  ChatRoom,
+  WsMessage,
+  WsMessageChat,
+  WsMessageUpdateStatus,
+} from "./messaging.type.js";
 
 const roomsMap = new Map<string, Set<WebSocket>>();
 
@@ -34,11 +39,50 @@ export function handleIncomingClient(socket: WebSocket) {
         break;
       }
 
+      case "chat": {
+        console.log(
+          `received message "${msg.payload.content}" (uuid: ${msg.payload.id}) from sender ${msg.payload.senderId}`
+        );
+
+        const roomToBroadcast = roomsMap.get(msg.payload.roomId);
+
+        if (!roomToBroadcast) {
+          break;
+        }
+
+        roomToBroadcast.forEach((client) => {
+          if (client !== socket) {
+            // Update the status to 'sent' and forward to other participants in the room
+            const updatedMsg: WsMessageChat = {
+              ...msg,
+              payload: { ...msg.payload, status: "sent" },
+            };
+            client.send(JSON.stringify(updatedMsg));
+          } else {
+            // Acknowledge to the sender that their message has been sent
+            const sentAckMsg: WsMessageUpdateStatus = {
+              type: "update-status",
+              payload: {
+                id: msg.payload.id,
+                roomId: msg.payload.roomId,
+                senderId: msg.payload.senderId,
+                status: "sent",
+              },
+            };
+            client.send(JSON.stringify(sentAckMsg));
+          }
+        });
+        console.log(
+          `sent message ${msg.payload.id} to everyone in room ${msg.payload.roomId} (if there are any)`
+        );
+        break;
+      }
+
       case "react": {
         const roomToBroadcast = roomsMap.get(msg.payload.roomId);
 
         if (!roomToBroadcast) {
-          return;
+          break;
         }
 
         roomToBroadcast.forEach((client) => {
@@ -49,25 +93,31 @@ export function handleIncomingClient(socket: WebSocket) {
         break;
       }
 
-      case "chat": {
-        console.log(
-          `received message "${msg.payload.content}" (uuid: ${msg.payload.id}) from sender ${msg.payload.senderId}`
-        );
-
+      case "update-status": {
         const roomToBroadcast = roomsMap.get(msg.payload.roomId);
 
         if (!roomToBroadcast) {
-          return;
+          break;
         }
 
-        roomToBroadcast.forEach((client) => {
-          if (client !== socket) {
-            client.send(JSON.stringify(msg));
+        // TODO: handle different status updates accordingly
+        switch (msg.payload.status) {
+          case "delivered": {
+            break;
           }
-        });
-        console.log(
-          `sent message ${msg.payload.id} to everyone in room ${msg.payload.roomId} (if there are any)`
-        );
+
+          case "read": {
+            break;
+          }
+
+          default: {
+            break;
+          }
+        }
+        break;
+      }
+
+      default: {
         break;
       }
     }
