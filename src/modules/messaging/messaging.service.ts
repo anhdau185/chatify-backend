@@ -2,13 +2,21 @@ import type { WebSocket } from "@fastify/websocket";
 
 import { ALL_MOCK_CHAT_ROOMS } from "./messaging.mockdb.js";
 import type {
+  ChatMessage,
   ChatRoom,
   WsMessage,
   WsMessageChat,
   WsMessageUpdateStatus,
 } from "./messaging.type.js";
 
-const roomsMap = new Map<string, Set<WebSocket>>();
+type UserID = number;
+type RoomID = string;
+type MessageID = string;
+type ChatClients = Map<UserID, WebSocket>;
+
+const roomsMap = new Map<RoomID, Set<WebSocket>>();
+const deliveredMsgIds = new Set<MessageID>();
+const readMsgIds = new Set<MessageID>();
 
 export function handleIncomingClient(socket: WebSocket) {
   socket.on("message", (raw) => {
@@ -50,28 +58,35 @@ export function handleIncomingClient(socket: WebSocket) {
           break;
         }
 
+        // Update status to 'sent' and replace createdAt with an authoritative server-generated timestamp
+        const patch: Pick<ChatMessage, "status" | "createdAt"> = {
+          status: "sent",
+          createdAt: Date.now(),
+        };
+        const updatedMsg: WsMessageChat = {
+          ...msg,
+          payload: { ...msg.payload, ...patch },
+        };
+        const sentAckMsg: WsMessageUpdateStatus = {
+          type: "update-status",
+          payload: {
+            id: msg.payload.id,
+            roomId: msg.payload.roomId,
+            senderId: msg.payload.senderId,
+            ...patch,
+          },
+        };
+
         roomToBroadcast.forEach((client) => {
           if (client !== socket) {
-            // Update the status to 'sent' and forward to other participants in the room
-            const updatedMsg: WsMessageChat = {
-              ...msg,
-              payload: { ...msg.payload, status: "sent" },
-            };
+            // Forward chat message to other participants in the room
             client.send(JSON.stringify(updatedMsg));
           } else {
             // Acknowledge to the sender that their message has been sent
-            const sentAckMsg: WsMessageUpdateStatus = {
-              type: "update-status",
-              payload: {
-                id: msg.payload.id,
-                roomId: msg.payload.roomId,
-                senderId: msg.payload.senderId,
-                status: "sent",
-              },
-            };
             client.send(JSON.stringify(sentAckMsg));
           }
         });
+
         console.log(
           `sent message ${msg.payload.id} to everyone in room ${msg.payload.roomId} (if there are any)`
         );
