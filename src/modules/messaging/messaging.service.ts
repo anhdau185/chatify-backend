@@ -58,18 +58,29 @@ export function handleIncomingClient(socket: WebSocket) {
         }
 
         // Update status to 'sent'
+        const timestamp =
+          msg.payload.status === "retrying"
+            ? Date.now()
+            : msg.payload.createdAt;
+
         const updatedMsg: WsMessageChat = {
           ...msg,
-          payload: { ...msg.payload, status: "sent" },
+          payload: {
+            ...msg.payload,
+            createdAt: timestamp,
+            status: "sent",
+          },
         };
+
         const sentAckMsg: WsMessageUpdateStatus = {
           type: "update-status",
           payload: {
             id: msg.payload.id,
             roomId: msg.payload.roomId,
             senderId: msg.payload.senderId,
-            createdAt: msg.payload.createdAt, // keep original timestamp
-            status: "sent",
+            createdAt: timestamp,
+            status:
+              msg.payload.status === "retrying" ? "retry-successful" : "sent",
           },
         };
 
