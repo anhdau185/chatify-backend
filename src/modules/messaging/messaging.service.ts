@@ -2,7 +2,6 @@ import type { WebSocket } from "@fastify/websocket";
 
 import { ALL_MOCK_CHAT_ROOMS } from "./messaging.mockdb.js";
 import type {
-  ChatMessage,
   ChatRoom,
   WsMessage,
   WsMessageChat,
@@ -58,14 +57,10 @@ export function handleIncomingClient(socket: WebSocket) {
           break;
         }
 
-        // Update status to 'sent' and replace createdAt with an authoritative server-generated timestamp
-        const patch: Pick<ChatMessage, "status" | "createdAt"> = {
-          status: "sent",
-          createdAt: Date.now(),
-        };
+        // Update status to 'sent'
         const updatedMsg: WsMessageChat = {
           ...msg,
-          payload: { ...msg.payload, ...patch },
+          payload: { ...msg.payload, status: "sent" },
         };
         const sentAckMsg: WsMessageUpdateStatus = {
           type: "update-status",
@@ -73,7 +68,8 @@ export function handleIncomingClient(socket: WebSocket) {
             id: msg.payload.id,
             roomId: msg.payload.roomId,
             senderId: msg.payload.senderId,
-            ...patch,
+            createdAt: msg.payload.createdAt, // keep original timestamp
+            status: "sent",
           },
         };
 
