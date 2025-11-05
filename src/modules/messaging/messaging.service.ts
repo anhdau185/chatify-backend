@@ -140,8 +140,8 @@ export function handleIncomingClient(socket: WebSocket) {
             }
 
             // Notify the sender that their message has been delivered to at least one recipient
-            // Add a small jitter to avoid race conditions with other delivery acks (like "sent")
-            setTimeout(() => senderSocket.send(JSON.stringify(msg)), 200);
+            // Add a small jitter to avoid race conditions with other ealier acks (like "sent")
+            setTimeout(() => senderSocket.send(JSON.stringify(msg)), 300);
             deliveredMessageIds.add(msg.payload.id);
             break;
           }
