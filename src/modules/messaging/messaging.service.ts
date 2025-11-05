@@ -11,11 +11,10 @@ import type {
 type UserID = number;
 type RoomID = string;
 type MessageID = string;
-type ChatClients = Map<UserID, WebSocket>;
 
 const roomsMap = new Map<RoomID, Map<UserID, WebSocket>>(); // Map of room ID to a map of user ID to their socket
-const deliveredMsgIds = new Set<MessageID>();
-const readMsgIds = new Set<MessageID>();
+const deliveredMessageIds = new Set<MessageID>();
+// const readMessageIds = new Set<MessageID>();
 
 export function handleIncomingClient(socket: WebSocket) {
   socket.on("message", (raw) => {
@@ -121,14 +120,29 @@ export function handleIncomingClient(socket: WebSocket) {
       }
 
       case "update-status": {
-        const roomToBroadcast = roomsMap.get(msg.payload.roomId);
-        if (!roomToBroadcast) {
-          break;
-        }
-
-        // TODO: handle different status updates accordingly
         switch (msg.payload.status) {
           case "delivered": {
+            if (deliveredMessageIds.has(msg.payload.id)) {
+              // A recipient has already acknowledged the delivery of this message
+              // and server might have broadcasted an ack msg to the sender
+              break;
+            }
+
+            const roomToBroadcast = roomsMap.get(msg.payload.roomId);
+            if (!roomToBroadcast) {
+              break;
+            }
+
+            // Get the right client socket to broadcast to
+            const senderSocket = roomToBroadcast.get(msg.payload.senderId);
+            if (!senderSocket) {
+              break;
+            }
+
+            // Notify the sender that their message has been delivered to at least one recipient
+            // Add a small jitter to avoid race conditions with other delivery acks (like "sent")
+            setTimeout(() => senderSocket.send(JSON.stringify(msg)), 200);
+            deliveredMessageIds.add(msg.payload.id);
             break;
           }
 
