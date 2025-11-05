@@ -13,7 +13,7 @@ type RoomID = string;
 type MessageID = string;
 type ChatClients = Map<UserID, WebSocket>;
 
-const roomsMap = new Map<RoomID, Set<WebSocket>>();
+const roomsMap = new Map<RoomID, Map<UserID, WebSocket>>(); // Map of room ID to a map of user ID to their socket
 const deliveredMsgIds = new Set<MessageID>();
 const readMsgIds = new Set<MessageID>();
 
@@ -28,17 +28,25 @@ export function handleIncomingClient(socket: WebSocket) {
             `received a request to join room ${roomId} from user ${msg.payload.senderId}`
           );
 
+          // Get the room to join, create new one beforehand if not existing
           if (!roomsMap.has(roomId)) {
-            roomsMap.set(roomId, new Set());
+            roomsMap.set(roomId, new Map<UserID, WebSocket>());
           }
 
           const roomToJoin = roomsMap.get(roomId);
-
           if (!roomToJoin) {
             return;
           }
 
-          roomToJoin.add(socket);
+          // Get existing socket for this user in this room (if any)
+          const existingSocket = roomToJoin.get(msg.payload.senderId);
+          if (existingSocket) {
+            existingSocket.close(); // Close the old socket
+            roomToJoin.delete(msg.payload.senderId); // Remove old mapping
+          }
+
+          // Add new socket mapping for this user
+          roomToJoin.set(msg.payload.senderId, socket);
           console.log(
             `user ${msg.payload.senderId} has been added to room ${roomId}`
           );
@@ -52,12 +60,10 @@ export function handleIncomingClient(socket: WebSocket) {
         );
 
         const roomToBroadcast = roomsMap.get(msg.payload.roomId);
-
         if (!roomToBroadcast) {
           break;
         }
 
-        // Update status to 'sent'
         const timestamp =
           msg.payload.status === "retrying"
             ? Date.now()
@@ -84,13 +90,13 @@ export function handleIncomingClient(socket: WebSocket) {
           },
         };
 
-        roomToBroadcast.forEach((client) => {
-          if (client !== socket) {
+        roomToBroadcast.forEach((clientSocket, userId) => {
+          if (clientSocket !== socket) {
             // Forward chat message to other participants in the room
-            client.send(JSON.stringify(updatedMsg));
+            clientSocket.send(JSON.stringify(updatedMsg));
           } else {
             // Acknowledge to the sender that their message has been sent
-            client.send(JSON.stringify(sentAckMsg));
+            clientSocket.send(JSON.stringify(sentAckMsg));
           }
         });
 
@@ -102,14 +108,13 @@ export function handleIncomingClient(socket: WebSocket) {
 
       case "react": {
         const roomToBroadcast = roomsMap.get(msg.payload.roomId);
-
         if (!roomToBroadcast) {
           break;
         }
 
-        roomToBroadcast.forEach((client) => {
-          if (client !== socket) {
-            client.send(JSON.stringify(msg));
+        roomToBroadcast.forEach((clientSocket, userId) => {
+          if (clientSocket !== socket) {
+            clientSocket.send(JSON.stringify(msg));
           }
         });
         break;
@@ -117,7 +122,6 @@ export function handleIncomingClient(socket: WebSocket) {
 
       case "update-status": {
         const roomToBroadcast = roomsMap.get(msg.payload.roomId);
-
         if (!roomToBroadcast) {
           break;
         }
@@ -148,7 +152,13 @@ export function handleIncomingClient(socket: WebSocket) {
   // Remove connection from every room upon socket close
   socket.on("close", () => {
     for (const room of roomsMap.values()) {
-      room.delete(socket);
+      // Find and remove this socket from any user in the room
+      for (const [userId, clientSocket] of room.entries()) {
+        if (clientSocket === socket) {
+          room.delete(userId);
+          break; // One user can only have one socket in a room
+        }
+      }
     }
   });
 }
