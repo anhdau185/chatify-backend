@@ -123,8 +123,8 @@ export function handleIncomingClient(socket: WebSocket) {
         switch (msg.payload.status) {
           case "delivered": {
             if (deliveredMessageIds.has(msg.payload.id)) {
-              // A recipient has already acknowledged the delivery of this message
-              // and server might have broadcasted an ack msg to the sender
+              // Here, it's safe to say that a recipient has already acknowledged the delivery of this message
+              // and server has already broadcasted a delivery ack msg to the sender, so do nothing
               break;
             }
 
@@ -133,13 +133,13 @@ export function handleIncomingClient(socket: WebSocket) {
               break;
             }
 
-            // Get the right client socket to broadcast to
+            // Get the right client socket to broadcast to (the original sender)
             const senderSocket = roomToBroadcast.get(msg.payload.senderId);
             if (!senderSocket) {
               break;
             }
 
-            // Notify the sender that their message has been delivered to at least one recipient
+            // Acknowledge to the sender that their message has been delivered to at least one recipient
             // Add a small jitter to avoid race conditions with other ealier acks (like "sent")
             setTimeout(() => senderSocket.send(JSON.stringify(msg)), 300);
             deliveredMessageIds.add(msg.payload.id);
